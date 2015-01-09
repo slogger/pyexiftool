@@ -86,7 +86,7 @@ sentinel = b"{ready}"
 # some cases.
 block_size = 4096
 
-# constants related to keywords manipulations 
+# constants related to keywords manipulations
 KW_TAGNAME = "IPTC:Keywords"
 KW_REPLACE, KW_ADD, KW_REMOVE = range(3)
 
@@ -107,8 +107,8 @@ def _fscodec():
     def fsencode(filename):
         """
         Encode filename to the filesystem encoding with 'surrogateescape' error
-        handler, return bytes unchanged. On Windows, use 'strict' error handler if
-        the file system encoding is 'mbcs' (which is the default encoding).
+        handler, return bytes unchanged. On Windows, use 'strict' error handler
+        if the file system encoding is 'mbcs' (which is the default encoding).
         """
         if isinstance(filename, bytes):
             return filename
@@ -120,36 +120,39 @@ def _fscodec():
 fsencode = _fscodec()
 del _fscodec
 
+
 #string helper
-def strip_nl (s):
+def strip_nl(s):
     return ' '.join(s.splitlines())
 
 
 # Error checking function
-# Note: They are quite fragile, beacsue teh just parse the output text from exiftool
-def check_ok (result):
+# Note: They are quite fragile,
+#   beacsue teh just parse the output text from exiftool
+def check_ok(result):
     """Evaluates the output from a exiftool write operation (e.g. `set_tags`)
-    
+
     The argument is the result from the execute method.
-    
+
     The result is True or False.
     """
     return not result is None and (not "due to errors" in result)
 
-def format_error (result):
+
+def format_error(result):
     """Evaluates the output from a exiftool write operation (e.g. `set_tags`)
-    
+
     The argument is the result from the execute method.
-    
+
     The result is a human readable one-line string.
     """
-    if check_ok (result):
+    if check_ok(result):
         return 'exiftool finished probably properly. ("%s")' % strip_nl(result)
-    else:        
+    else:
         if result is None:
             return "exiftool operation can't be evaluated: No result given"
         else:
-            return 'exiftool finished with error: "%s"' % strip_nl(result) 
+            return 'exiftool finished with error: "%s"' % strip_nl(result)
 
 
 class ExifTool(object):
@@ -192,7 +195,7 @@ class ExifTool(object):
     """
 
     def __init__(self, executable_=None, addedargs=None):
-        
+
         if executable_ is None:
             self.executable = executable
         else:
@@ -204,7 +207,7 @@ class ExifTool(object):
             self.addedargs = addedargs
         else:
             raise TypeError("addedargs not a list of strings")
-        
+
         self.running = False
 
     def start(self):
@@ -220,9 +223,9 @@ class ExifTool(object):
             return
         with open(os.devnull, "w") as devnull:
             procargs = [self.executable, "-stay_open", "True",  "-@", "-",
-                 "-common_args", "-G", "-n"];
+                        "-common_args", "-G", "-n"]
             procargs.extend(self.addedargs)
-            logging.debug(procargs) 
+            logging.debug(procargs)
             self._process = subprocess.Popen(
                 procargs,
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -383,14 +386,15 @@ class ExifTool(object):
     def set_tags_batch(self, tags, filenames):
         """Writes the values of the specified tags for the given files.
 
-        The first argument is a dictionary of tags and values.  The tag names may
-        include group names, as usual in the format <group>:<tag>.
+        The first argument is a dictionary of tags and values.
+        The tag names may include group names,
+        as usual in the format <group>:<tag>.
 
         The second argument is an iterable of file names.
 
         The format of the return value is the same as for
         :py:meth:`execute()`.
-        
+
         It can be passed into `check_ok()` and `format_error()`.
         """
         # Explicitly ruling out strings here because passing in a
@@ -401,13 +405,13 @@ class ExifTool(object):
         if isinstance(filenames, basestring):
             raise TypeError("The argument 'filenames' must be "
                             "an iterable of strings")
-                
+
         params = []
         for tag, value in tags.items():
             params.append(u'-%s=%s' % (tag, value))
-            
+
         params.extend(filenames)
-        logging.debug (params)
+        logging.debug(params)
         return self.execute(*params)
 
     def set_tags(self, tags, filename):
@@ -415,27 +419,27 @@ class ExifTool(object):
 
         This is a convenience function derived from `set_tags_batch()`.
         Only difference is that it takes as last arugemnt only one file name
-        as a string. 
+        as a string.
         """
         return self.set_tags_batch(tags, [filename])
-    
+
     def set_keywords_batch(self, mode, keywords, filenames):
         """Modifies the keywords tag for the given files.
 
         The first argument is the operation mode:
         KW_REPLACE: Replace (i.e. set) the full keywords tag with `keywords`.
-        KW_ADD:     Add `keywords` to the keywords tag. 
+        KW_ADD:     Add `keywords` to the keywords tag.
                     If a keyword is present, just keep it.
-        KW_REMOVE:  Remove `keywords` from the keywords tag. 
+        KW_REMOVE:  Remove `keywords` from the keywords tag.
                     If a keyword wasn't present, just leave it.
 
-        The second argument is an iterable of key words.    
+        The second argument is an iterable of key words.
 
         The third argument is an iterable of file names.
 
         The format of the return value is the same as for
         :py:meth:`execute()`.
-        
+
         It can be passed into `check_ok()` and `format_error()`.
         """
         # Explicitly ruling out strings here because passing in a
@@ -446,25 +450,25 @@ class ExifTool(object):
         if isinstance(filenames, basestring):
             raise TypeError("The argument 'filenames' must be "
                             "an iterable of strings")
-                
-        params = []    
-            
-        kw_operation = {KW_REPLACE:"-%s=%s",
-                        KW_ADD:"-%s+=%s",
-                        KW_REMOVE:"-%s-=%s"}[mode]
 
-        kw_params = [ kw_operation % (KW_TAGNAME, w)  for w in keywords ]
-        
-        params.extend(kw_params)            
+        params = []
+
+        kw_operation = {KW_REPLACE: "-%s=%s",
+                        KW_ADD: "-%s+=%s",
+                        KW_REMOVE: "-%s-=%s"}[mode]
+
+        kw_params = [kw_operation % (KW_TAGNAME, w) for w in keywords]
+
+        params.extend(kw_params)
         params.extend(filenames)
-        logging.debug (params)
+        logging.debug(params)
         return self.execute(*params)
-    
+
     def set_keywords(self, mode, keywords, filename):
         """Modifies the keywords tag for the given file.
 
         This is a convenience function derived from `set_keywords_batch()`.
         Only difference is that it takes as last argument only one file name
-        as a string. 
+        as a string.
         """
         return self.set_keywords_batch(mode, keywords, [filename])
