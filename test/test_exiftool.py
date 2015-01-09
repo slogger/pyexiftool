@@ -132,7 +132,7 @@ class TestExifTool(unittest.TestCase):
             shutil.copyfile(f, f_mod)
             source_files.append(f_mod)
             with self.et:
-                self.et.set_keywords(exiftool.KW_REPLACE, d["Keywords"], f_mod
+                self.et.set_keywords(exiftool.KW_REPLACE, d["Keywords"], f_mod)
                 kwtag0 = self.et.get_tag("IPTC:Keywords", f_mod)
                 kwrest = d["Keywords"][1:]
                 self.et.set_keywords(exiftool.KW_REMOVE, kwrest, f_mod)

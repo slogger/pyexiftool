@@ -277,7 +277,7 @@ class ExifTool(object):
         if not self.running:
             raise ValueError("ExifTool instance not running.")
         cmd_txt = b"\n".join(params + (b"-execute\n",))
-        self._process.stdin.write(cmd_txt.encode("utf-8"))
+        self._process.stdin.write(cmd_txt)
         self._process.stdin.flush()
         output = b""
         fd = self._process.stdout.fileno()
@@ -408,9 +408,10 @@ class ExifTool(object):
 
         params = []
         for tag, value in tags.items():
-            params.append(u'-%s=%s' % (tag, value))
+            params.append(bytes('-%s=%s' % (tag, value), 'utf-8'))
 
-        params.extend(filenames)
+        for filename in filenames:
+            params.append(bytes(filename, 'utf-8'))
         logging.debug(params)
         return self.execute(*params)
 
@@ -461,6 +462,7 @@ class ExifTool(object):
 
         params.extend(kw_params)
         params.extend(filenames)
+        params = [bytes(param, 'utf-8') for param in params]
         logging.debug(params)
         return self.execute(*params)
 
